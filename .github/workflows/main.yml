@@ -1,0 +1,29 @@
+name: Compilar Bizatune
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar
+        run: cmake -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Compilar
+        run: cmake --build build --config Release --target Bizatune_VST3
+
+      - name: Preparar archivos
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $vst = "build/Bizatune_artefacts/Release/VST3/Bizatune.vst3"
+          Copy-Item -Recurse $vst dist/Bizatune.vst3
+          Copy-Item "$vst/Contents/x86_64-win/Bizatune.vst3" "dist/Bizatune-un-solo-archivo.vst3"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Bizatune-VST3
+          path: dist
